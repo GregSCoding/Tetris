@@ -4,7 +4,7 @@ from helpers_pygame import random_color
 from copy import deepcopy
 
 TILE_SIZE = 25
-WIDTH = 12
+WIDTH = 8
 HEIGHT = 25
 GRAY = (80, 80, 80)
 FPS = 60
@@ -25,6 +25,7 @@ class Figure:
                      [(1, 0), (0, 0), (2, 0), (1, -1)]]
     figures = [[pygame.Rect((x + WIDTH//2), y + 1, TILE_SIZE, TILE_SIZE) for x,y in fig_pos] for fig_pos in figures_positions]
     def __init__(self):
+        #self.figure =deepcopy(Figure.figures[0])
         self.figure =deepcopy(random.choice(Figure.figures))
         self.colors = [random_color() for i in range(4)]
     def rotate(self, field):
@@ -55,7 +56,8 @@ class Figure:
             if part.y == HEIGHT or field[part.y][part.x] :
                 self.figure = deepcopy(old_figure)
                 for part, color in zip(self.figure, self.colors):
-                    field[part.y][part.x] = (part, color)
+                    field[part.y][part.x] = color
+                check_rows(field)
                 self.__init__()
                 return
     def draw_figure(self):
@@ -63,6 +65,20 @@ class Figure:
                 figure_rect.x = part.x * TILE_SIZE
                 figure_rect.y = part.y * TILE_SIZE
                 pygame.draw.rect(display, color, figure_rect)
+def check_rows(field):
+    flag = False
+    old_field = deepcopy(field)
+    for i, row in enumerate(field):
+        if all(row):
+            flag = True
+            old_field[i] = [(255,255,255) for i in range(WIDTH)]
+            del(field[i])
+            field.insert(0, [None for i in range(WIDTH)])
+    if flag:
+        draw_field(old_field)
+        draw_grid()
+        pygame.display.flip()
+        pygame.time.wait(400)
 def process_events(current_fig, field):
     for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -89,12 +105,12 @@ def draw_grid():
         for j in range(HEIGHT):
             pygame.draw.rect(display, GRAY, pygame.Rect(TILE_SIZE*i, TILE_SIZE*j, TILE_SIZE, TILE_SIZE), width=1)
 def draw_field(field):
-    for row in field:
+    for i, row in enumerate(field):
         for j in range(WIDTH):
             if row[j]:
-                part, color = row[j]
-                figure_rect.x = part.x * TILE_SIZE
-                figure_rect.y = part.y * TILE_SIZE
+                color = row[j]
+                figure_rect.x = j * TILE_SIZE
+                figure_rect.y = i * TILE_SIZE
                 pygame.draw.rect(display, color, figure_rect)        
 def main():
     field = [[None for i in range(WIDTH)] for j in range(HEIGHT)]

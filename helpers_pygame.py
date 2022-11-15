@@ -28,4 +28,9 @@ def random_color():
     x = random.randint(30, 255)
     y = random.randint(30, 255)
     z = random.randint(30, 255)
+    while x < 70 and y < 70 and z < 70:
+        x = random.randint(30, 255)
+        y = random.randint(30, 255)
+        z = random.randint(30, 255)
+
     return (x, y, z)
