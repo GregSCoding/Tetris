@@ -8,7 +8,8 @@ def get_image(sheet, frame, width, height, row=0, scale=1):
     image.set_colorkey((0, 0, 0))
     return image
 
-def display_text(display, orientation, x, y, font, text, txt_color):
+def display_text(display, x, y, text, txt_color=pygame.Color("white"), orientation="center", txt_size = 32):
+    font = pygame.font.Font('freesansbold.ttf', txt_size)
     text = font.render(text, True, txt_color)
     text.set_alpha(256)
     textRect = text.get_rect()
