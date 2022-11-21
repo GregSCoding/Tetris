@@ -14,13 +14,16 @@ display = pygame.display.set_mode(size=(TILE_SIZE*(WIDTH + INTERFACE_WIDTH), TIL
 pygame.display.set_caption("Tetris")
 clock = pygame.time.Clock()
 figure_rect = pygame.Rect(0, 0, TILE_SIZE, TILE_SIZE)
+
+        
+    
 class Figure:
     FALL_SPEED, FALL_LIMIT, FALL_COUNT = 60, 2000, 0
     figures_positions = [[(1, 0), (0, 0), (2, 0), (3, 0)],
                      [(1, 0), (0, 0), (0, -1), (1, -1)],
                      [(0, 0), (1, 0), (0, 1), (1, -1)],
                      [(0, 0), (1, 0), (1, 1), (0, -1)],
-                     [(0, 0), (1, 0), (2, 0), (1, -1)],
+                     [(1, 0), (0, 0), (2, 0), (1, -1)],
                      [(1, 0), (0, 0), (2, 0), (2, 1)],
                      [(1, 0), (0, 0), (2, 0), (0, 1)]]
     figures = [[pygame.Rect((x + WIDTH//2), y, TILE_SIZE, TILE_SIZE) for x,y in fig_pos] for fig_pos in figures_positions]
@@ -38,7 +41,7 @@ class Figure:
             y = rect.y
             newx = -(y - centery) + centerx
             newy = (x - centerx) + centery
-            if newx >= WIDTH or newx < 0 or newy >= HEIGHT or newy < 0 or field[newy][newx]:
+            if newx >= WIDTH or newx < 0 or newy >= HEIGHT or field[newy][newx]:
                 self.figure = old_figure
                 return
             rect.x = newx
@@ -99,9 +102,12 @@ def fill_anim(field):
     
     pygame.display.flip()
 def game_over(field):
+    global high_score
     fill_anim(field)
     display_text(display, WIDTH//2*TILE_SIZE, HEIGHT//2*TILE_SIZE, "--GAME OVER--", txt_size=38, txt_color=pygame.Color("white"))
     pygame.display.flip()
+    if score > high_score:
+        save_higscore(score)
     while True:
         for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -110,7 +116,6 @@ def game_over(field):
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         return
-
 def check_rows(field):
     flag = False
     global score
@@ -182,13 +187,28 @@ def pause():
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         return
-def draw_score():
+def save_higscore(score):
+    with open("save.txt", "w") as f:
+        f.write(str(score))
+def load_highscore():
+    with open("save.txt", "r+") as f:
+        high_score = f.readline()
+        if not high_score:
+            high_score = 0
+            f.write(str(high_score))
+            return high_score
+        else:
+            return int(high_score)
+def draw_score(high_score):
     display_text(display, (WIDTH+INTERFACE_WIDTH//2)*TILE_SIZE, (-5+HEIGHT//2)*TILE_SIZE, "Score:", txt_size=24, txt_color=pygame.Color("yellow"))
     display_text(display, (WIDTH+INTERFACE_WIDTH//2)*TILE_SIZE, (-4+HEIGHT//2)*TILE_SIZE, str(score) , txt_size=24, txt_color=pygame.Color("yellow"))
+    display_text(display, (WIDTH+INTERFACE_WIDTH//2)*TILE_SIZE, (-3+HEIGHT//2)*TILE_SIZE, "Highscore:" , txt_size=24, txt_color=pygame.Color("yellow"))
+    display_text(display, (WIDTH+INTERFACE_WIDTH//2)*TILE_SIZE, (-2+HEIGHT//2)*TILE_SIZE, str(high_score) , txt_size=24, txt_color=pygame.Color("yellow"))
 def main():
+    global high_score 
+    high_score = load_highscore()
     field = [[None for i in range(WIDTH)] for j in range(HEIGHT)]
     current_fig = Figure(random.randrange(0, len(Figure.figures)))
-    fill_anim(field)
     while True:
         process_events(current_fig, field)
         display.fill((pygame.Color("black")))
@@ -196,7 +216,7 @@ def main():
         current_fig.next_figure.draw_figure()
         draw_field(field)
         draw_grid()
-        draw_score()
+        draw_score(high_score)
         pygame.display.flip()
         clock.tick(FPS)
 if __name__ == "__main__":
